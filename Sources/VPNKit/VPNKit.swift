@@ -13,32 +13,53 @@ public class VPNKit {
     }
 
     public struct Account {
-        public var id: String
-        public var type: Type = .IPSec
+        public var id: UUID
+        public var type: Type
         public var title: String
         public var server: String
         public var account: String?
         public var group: String?
         public var remoteID: String?
-        public var alwaysOn: Bool = true
+        public var alwaysOn: Bool
+
+        public var password: String? {
+            get {
+                return VPNKit.keychain[id.uuidString]
+            }
+            set {
+                guard let value = newValue else {
+                    return
+                }
+                try? VPNKit.keychain.set(value, key: id.uuidString)
+            }
+        }
+
+        public var secret: String? {
+            get {
+                return VPNKit.keychain["\(id.uuidString)psk"]
+            }
+            set {
+                guard let value = newValue else {
+                    return
+                }
+                try? VPNKit.keychain.set(value, key: "\(id.uuidString)psk")
+            }
+        }
 
         public var passwordReference: Data? {
-            guard let url = URL(string: id) else {
-                return nil
-            }
-            return VPNKit.keychain[attributes: url.lastPathComponent]?.persistentRef
+            return VPNKit.keychain[attributes: id.uuidString]?.persistentRef
         }
 
         public var secretReference: Data? {
-            guard let url = URL(string: id),
-                  let data = VPNKit.keychain[attributes: "\(url.lastPathComponent)psk"]?.data, let value = String(data: data, encoding: .utf8), value.isEmpty == false
+            guard
+                let data = VPNKit.keychain[attributes: "\(id.uuidString)psk"]?.data, let value = String(data: data, encoding: .utf8), value.isEmpty == false
             else {
                 return nil
             }
-            return VPNKit.keychain[attributes: "\(url.lastPathComponent)psk"]?.persistentRef
+            return VPNKit.keychain[attributes: "\(id.uuidString)psk"]?.persistentRef
         }
 
-        public init(id: String, type: Type = .IPSec, title: String, server: String, account: String?, group: String?, remoteID: String?, alwaysOn: Bool = true) {
+        public init(id: UUID = UUID(), type: Type = .IPSec, title: String, server: String, account: String?, group: String?, remoteID: String?, alwaysOn: Bool = true, password: String?, secret: String?) {
             self.id = id
             self.type = type
             self.title = title
@@ -47,6 +68,8 @@ public class VPNKit {
             self.group = group
             self.remoteID = remoteID
             self.alwaysOn = alwaysOn
+            self.password = password
+            self.secret = secret
         }
     }
 
