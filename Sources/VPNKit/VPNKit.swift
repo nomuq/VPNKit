@@ -20,7 +20,7 @@ public class VPNKit {
         public var account: String?
         public var group: String?
         public var remoteID: String?
-        public var alwaysOn = true
+        public var alwaysOn: Bool = true
 
         public var passwordReference: Data? {
             guard let url = URL(string: id) else {
@@ -36,6 +36,17 @@ public class VPNKit {
                 return nil
             }
             return VPNKit.keychain[attributes: "\(url.lastPathComponent)psk"]?.persistentRef
+        }
+
+        public init(id: String, type: Type = .IPSec, title: String, server: String, account: String?, group: String?, remoteID: String?, alwaysOn: Bool = true) {
+            self.id = id
+            self.type = type
+            self.title = title
+            self.server = server
+            self.account = account
+            self.group = group
+            self.remoteID = remoteID
+            self.alwaysOn = alwaysOn
         }
     }
 
