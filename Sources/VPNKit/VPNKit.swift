@@ -83,12 +83,18 @@ public class VPNKit {
 
     public static var `default` = VPNKit()
 
-    public func connect(account _: Account) throws {
-        do {
-            try manager.connection.startVPNTunnel()
-        } catch {
-            NotificationCenter.default.post(name: NSNotification.Name.NEVPNStatusDidChange, object: nil)
-            throw error
+    public func connect(account: Account, result: @escaping (Error?) -> Void) {
+        save(account: account) { [weak self] error in
+            if error == nil {
+                do {
+                    try self?.manager.connection.startVPNTunnel()
+                } catch {
+                    NotificationCenter.default.post(name: NSNotification.Name.NEVPNStatusDidChange, object: nil)
+                    result(error)
+                }
+            } else {
+                result(error)
+            }
         }
     }
 
